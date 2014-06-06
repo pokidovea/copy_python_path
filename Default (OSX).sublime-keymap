@@ -1,0 +1,3 @@
+[
+	{ "keys": ["super+shift+k"], "command": "copy_python_path" }
+]
