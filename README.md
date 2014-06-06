@@ -1,4 +1,4 @@
-copy_python_path
+CopyPythonPath
 ================
 
-CopyPythonPath
+Puts python path of the currently selected python class or classmethod to the clipboard.
