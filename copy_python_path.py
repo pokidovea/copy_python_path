@@ -9,16 +9,20 @@ import sublime_plugin
 class CopyPythonPathCommand(sublime_plugin.TextCommand):
 
     def run(self, edit):
-        path_items = self.view.file_name().split('/')
+        head, tail = os.path.split(self.view.file_name())
 
-        module = path_items.pop().split('.')[0]
+        module = tail.rsplit('.', 1)[0]
         python_path_items = [module, ]
 
-        while len(path_items) > 0:
-            if '__init__.py' in os.listdir('/%s/' % '/'.join(path_items)):
-                python_path_items.insert(0, path_items.pop())
+        head, tail = os.path.split(head)
+
+        while tail:
+            if '__init__.py' in os.listdir(os.path.join(head, tail)):
+                python_path_items.insert(0, tail)
             else:
                 break
+
+            head, tail = os.path.split(head)
 
         caret_point = self.view.sel()[0].begin()
 
