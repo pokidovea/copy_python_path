@@ -9,10 +9,12 @@ import sublime_plugin
 class CopyPythonPathCommand(sublime_plugin.TextCommand):
 
     def run(self, edit):
+        python_path_items = []
         head, tail = os.path.split(self.view.file_name())
 
         module = tail.rsplit('.', 1)[0]
-        python_path_items = [module, ]
+        if module != '__init__':
+            python_path_items.append(module)
 
         head, tail = os.path.split(head)
 
