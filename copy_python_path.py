@@ -36,10 +36,11 @@ class CopyPythonPathCommand(sublime_plugin.TextCommand):
             if self.view.indentation_level(caret_point) > 0:
                 regions = self.view.find_by_selector('entity.name.type.class.python')
                 possible_class_point = 0
-                for region in regions:
-                    if region.b < caret_point:
+                regions = list(filter(lambda reg: reg.b < caret_point, regions))
+
+                for region in reversed(regions):
+                    if self.view.indentation_level(region.a) == 0:
                         possible_class_point = region.a
-                    else:
                         break
 
                 class_name = self.view.substr(self.view.word(possible_class_point))
