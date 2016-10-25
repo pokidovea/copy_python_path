@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 
 import sublime
 import sublime_plugin
@@ -27,14 +28,14 @@ class CopyPythonPathCommand(sublime_plugin.TextCommand):
             head, tail = os.path.split(head)
 
         caret_point = self.view.sel()[0].begin()
-
-        if 'entity.name.type.class.python' in self.view.scope_name(caret_point):
+        class_entity = 'entity.name.class.python' if sys.version_info < (3, 0, 0) else 'entity.name.type.class.python'
+        if class_entity in self.view.scope_name(caret_point):
             python_path_items.append(self.view.substr(self.view.word(caret_point)))
 
         if 'entity.name.function.python' in self.view.scope_name(caret_point):
             method_name = self.view.substr(self.view.word(caret_point))
             if self.view.indentation_level(caret_point) > 0:
-                regions = self.view.find_by_selector('entity.name.type.class.python')
+                regions = self.view.find_by_selector(class_entity)
                 possible_class_point = 0
                 for region in regions:
                     if region.b < caret_point:
