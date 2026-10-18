@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 
 import sublime
 import sublime_plugin
+
+# The class name scope differs between Python syntax definitions:
+# newer ones (e.g. Sublime Text 4) use `entity.name.class.python`,
+# older ones use `entity.name.type.class.python`.
+CLASS_SELECTOR = 'entity.name.class.python, entity.name.type.class.python'
+FUNCTION_SELECTOR = 'entity.name.function.python'
 
 
 class CopyPythonPathCommand(sublime_plugin.TextCommand):
@@ -28,24 +33,28 @@ class CopyPythonPathCommand(sublime_plugin.TextCommand):
             head, tail = os.path.split(head)
 
         caret_point = self.view.sel()[0].begin()
-        class_entity = 'entity.name.class.python' if sys.version_info < (3, 0, 0) else 'entity.name.type.class.python'
-        if class_entity in self.view.scope_name(caret_point):
-            python_path_items.append(self.view.substr(self.view.word(caret_point)))
+        # Scopes are checked at the start of the word under the caret, because
+        # the scope at the caret itself belongs to the character to its right
+        # (e.g. `:` for `class A|:`).
+        name_region = self.view.word(caret_point)
+        name_point = name_region.a
+        name = self.view.substr(name_region)
 
-        if 'entity.name.function.python' in self.view.scope_name(caret_point):
-            method_name = self.view.substr(self.view.word(caret_point))
+        if self.view.match_selector(name_point, CLASS_SELECTOR):
+            python_path_items.append(name)
+
+        if self.view.match_selector(name_point, FUNCTION_SELECTOR):
+            method_name = name
             if self.view.indentation_level(caret_point) > 0:
-                regions = self.view.find_by_selector(class_entity)
-                possible_class_point = 0
-                for region in regions:
+                class_region = None
+                for region in self.view.find_by_selector(CLASS_SELECTOR):
                     if region.b < caret_point:
-                        possible_class_point = region.a
+                        class_region = region
                     else:
                         break
 
-                class_name = self.view.substr(self.view.word(possible_class_point))
-
-                python_path_items.append(class_name)
+                if class_region is not None:
+                    python_path_items.append(self.view.substr(class_region))
 
             python_path_items.append(method_name)
 
